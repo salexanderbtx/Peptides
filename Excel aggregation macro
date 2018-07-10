@@ -1,0 +1,119 @@
+Sub SheetCalculation()
+    Cells.Select
+    With Selection.Font
+        .ColorIndex = xlAutomatic
+        .TintAndShade = 0
+    End With
+    With Selection.Interior
+        .Pattern = xlNone
+        .TintAndShade = 0
+        .PatternTintAndShade = 0
+    End With
+    Columns("B:BB").Select
+    Selection.ClearContents
+Dim n, m, o, nn, nnn, aacoef, sequence, difcoef, pentamer, AA, seqnum, repeatmsg
+Dim AmAc()
+Dim diffseq()
+Range("A1").Select
+If Selection.Value <> "Sequence" Then
+    Selection.Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+    Range("A1").Select
+    ActiveCell.FormulaR1C1 = "Sequence"
+End If
+
+seqnum = 0
+repeatmsg = 0
+For n = 1 To 10000
+If ActiveCell.Offset(n, 0).Value <> "" Then seqnum = seqnum + 1
+If ActiveCell.Offset(n, 0).Value = "" Then n = 10000
+Next n
+For nn = 1 To seqnum
+sequence = ActiveCell.Offset(nn, 0).Value
+ReDim AmAc(Len(sequence))
+ReDim diffseq(Len(sequence))
+
+For n = 1 To Len(sequence)
+    AmAc(n) = Mid(sequence, n, 1)
+    pentamer = Mid(sequence, n, 5)
+    difcoef = 0
+        For m = 1 To 5
+            AA = UCase(Mid(pentamer, m, 1))
+
+            Select Case AA
+            Case "A"
+                aacoef = 1.34 '1.32
+            Case "R"
+                aacoef = 0.46 '0.49
+            Case "N"
+                aacoef = 0.97 '0.96
+            Case "D"
+                aacoef = 0.63 '0.73
+            Case "C"
+                aacoef = 1.09 '1.07
+            Case "Q"
+                aacoef = 0.79 '0.82
+            Case "E"
+                aacoef = 1.1  '1.16
+            Case "G"
+                aacoef = 0.81 '0.9
+            Case "H"
+                aacoef = 0.64 '0.4
+            Case "I"
+                aacoef = 1.58 '1.53
+            Case "L"
+                aacoef = 1.2 '1.18
+            Case "K"
+                aacoef = 1.31 '1.19
+            Case "M"
+                aacoef = 1.15 '1.34
+            Case "F"
+                aacoef = 1.07 '1.16
+            Case "P"
+                aacoef = 0.26 '0.49
+            Case "S"
+                aacoef = 0.69 '0.89
+            Case "T"
+                aacoef = 1.15 '1.1
+            Case "W"
+                aacoef = 1.01 '0.91
+            Case "Y"
+                aacoef = 1.12 '1.03
+            Case "V"
+                aacoef = 1.77 '1.45
+            Case "X"
+                aacoef = 0.4
+            Case "J"
+                aacoef = 0.4
+            Case "Z"
+                aacoef = 0.4
+            Case Else
+                aacoef = 0.9
+                If n < Len(sequence) - 4 Then
+                    repeatmsg = repeatmsg + 1
+                    If repeatmsg = 5 Then repeatmsg = 0
+                    If repeatmsg = 1 Then MsgBox (AA & " is not defined, I am using average value")
+                End If
+            End Select
+            difcoef = difcoef + aacoef
+        Next m
+    diffseq(n) = Format((difcoef / 5), "0.00")
+Next n
+For nnn = 1 To Len(sequence) - 4
+ActiveCell.Offset(nn, nnn).Value = AmAc(nnn) & " " & diffseq(nnn)
+    ActiveCell.Offset(nn, nnn).Interior.Pattern = xlNone
+    If diffseq(nnn) > 1.2 Then ActiveCell.Offset(nn, nnn).Interior.Color = vbRed
+    If diffseq(nnn) < 0.8 Then ActiveCell.Offset(nn, nnn).Interior.Color = vbGreen
+Next nnn
+For nnn = Len(sequence) - 3 To Len(sequence)
+    ActiveCell.Offset(nn, nnn).Value = AmAc(nnn) & " " & "0.88"
+    ActiveCell.Offset(nn, nnn).Interior.Pattern = xlNone
+Next nnn
+For o = 1 To Len(sequence)
+If diffseq(o) > 1.2 Then ActiveCell.Offset(nn, 0).Characters(Start:=o, Length:=1).Font.Color = vbRed
+If diffseq(o) < 0.8 Then ActiveCell.Offset(nn, 0).Characters(Start:=o, Length:=1).Font.Color = vbGreen
+Next o
+
+Next nn
+
+Range("A1").Select
+End Sub
